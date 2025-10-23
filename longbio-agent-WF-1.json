@@ -1,0 +1,463 @@
+{
+  "name": "longbio-agent-WF-1",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "79175fc6-91e5-492d-b849-be1794057085",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": "={{ $json.spreadsheetId }}",
+        "sheetName": {
+          "__rl": true,
+          "value": "Brief",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "eaab363b-25e1-4aff-b2ea-c3adef935607",
+      "name": "Read Brief Tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -416,
+        176
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "prompt": "=You are an expert nonprofit fundraising strategist.\n\nMission: {{ $json.mission }}\nProjects: {{ $json.projects }}\nLocation: {{ $json.location }}\n\nIdentify 2-4 fundraising avenues. Return ONLY JSON array:\n[{\"slug\":\"audience-channel\",\"audience\":\"donor segment\",\"channel\":\"email\",\"valueProp\":\"why they care\",\"searchHints\":\"how to find leads\",\"angleA\":\"first approach\",\"angleB\":\"second approach\"}]",
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "ca24ef4d-9776-47e3-a834-717c73410198",
+      "name": "AI Avenue Generation",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        176
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "JEfSEqdw3AmHNT4o",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json.message || $input.first().json.text || '';\nconst cleaned = response.replace(/``````/g, '').trim();\nconst avenues = JSON.parse(cleaned);\n\nif (!Array.isArray(avenues) || avenues.length < 2 || avenues.length > 4) {\n  throw new Error('Invalid avenues');\n}\n\nreturn avenues.map(avenue => ({ json: avenue }));"
+      },
+      "id": "f999ce17-2f4f-4340-a2aa-18292c18a7e0",
+      "name": "Parse & Validate AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "create",
+        "documentId": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+        "options": {}
+      },
+      "id": "a6f42407-46fc-444e-9f55-1bbbcfa320f0",
+      "name": "Create Avenue Tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        192,
+        176
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+        "sheetName": "={{ $json.slug }}",
+        "options": {}
+      },
+      "id": "a907da41-29fc-4709-b089-dd30dcd20b4c",
+      "name": "Write Avenue Metadata",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        400,
+        176
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "google_creds"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "prompt": "=Write fundraising email.\n\nMission: {{ $('Read Brief Tab').item.json.mission }}\nAudience: {{ $json.audience }}\nAngle: {{ $json.angleA }}\n\nReturn JSON:\n{\"subject\":\"subject here\",\"body\":\"body here\"}",
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "5c7bd1a0-fc08-48cf-80bc-98bee0c46afa",
+      "name": "Generate Message Variant A",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        592,
+        176
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "JEfSEqdw3AmHNT4o",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $input.item.json.message || $input.item.json.text || '';\nconst cleaned = response.replace(/``````/g, '').trim();\nconst messageA = JSON.parse(cleaned);\nreturn { json: { ...$input.item.json, messageA } };"
+      },
+      "id": "37a486e3-0987-4961-a0ef-cf3c295ff11f",
+      "name": "Parse Message A",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "prompt": "=Write fundraising email.\n\nMission: {{ $('Read Brief Tab').item.json.mission }}\nAudience: {{ $json.audience }}\nAngle: {{ $json.angleB }}\n\nReturn JSON:\n{\"subject\":\"subject here\",\"body\":\"body here\"}",
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "ff43a912-dfb0-4cc9-9bcc-7805a62c733a",
+      "name": "Generate Message Variant B",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        992,
+        176
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "JEfSEqdw3AmHNT4o",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $input.item.json.message || $input.item.json.text || '';\nconst cleaned = response.replace(/``````/g, '').trim();\nconst messageB = JSON.parse(cleaned);\nreturn { json: { ...$input.item.json, messageB } };"
+      },
+      "id": "989701a9-d22a-4ece-af81-462c98c66cae",
+      "name": "Parse Message B",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+        "sheetName": "={{ $json.slug }}",
+        "options": {}
+      },
+      "id": "06c4e033-d9a3-4d1c-8c65-6810061bc8c7",
+      "name": "Write Message A",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1392,
+        176
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+        "sheetName": "={{ $json.slug }}",
+        "options": {}
+      },
+      "id": "6da364bb-e8c5-4482-b00e-3e6bc7f6f8f5",
+      "name": "Write Message B",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1600,
+        176
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+        "options": {}
+      },
+      "id": "14f614bb-5ace-498e-b7b0-bc2a3b5c8362",
+      "name": "Create Leads Tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1792,
+        176
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "google_creds"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+        "sheetName": "={{ $json.slug }}-Leads",
+        "options": {}
+      },
+      "id": "cd788368-163b-4208-87e4-7b4a0d87b052",
+      "name": "Write Leads Headers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        2000,
+        176
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\nconst avenues = allItems.map(item => ({\n  slug: item.json.slug,\n  audience: item.json.audience,\n  channel: item.json.channel\n}));\n\n// Change this line - use .first() instead of .item\nconst spreadsheetId = $('Manual Trigger').first().json.spreadsheetId;\n\nreturn [{\n  json: {\n    success: true,\n    avenuesCreated: avenues.length,\n    avenues: avenues,\n    spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${spreadsheetId}`,\n    nextSteps: [\n      \"1. Review messages in each avenue tab\",\n      \"2. Run WF-2 to generate leads\",\n      \"3. Run WF-3 to send campaigns\"\n    ]\n  }\n}];\n"
+      },
+      "id": "cbc4171a-b30c-4d78-b8ef-cf46fdb9e74b",
+      "name": "Merge & Summarize Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2192,
+        176
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Brief Tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Brief Tab": {
+      "main": [
+        [
+          {
+            "node": "AI Avenue Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Avenue Generation": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate AI Response": {
+      "main": [
+        [
+          {
+            "node": "Create Avenue Tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Avenue Tab": {
+      "main": [
+        [
+          {
+            "node": "Write Avenue Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Avenue Metadata": {
+      "main": [
+        [
+          {
+            "node": "Generate Message Variant A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Message Variant A": {
+      "main": [
+        [
+          {
+            "node": "Parse Message A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message A": {
+      "main": [
+        [
+          {
+            "node": "Generate Message Variant B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Message Variant B": {
+      "main": [
+        [
+          {
+            "node": "Parse Message B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message B": {
+      "main": [
+        [
+          {
+            "node": "Write Message A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Message A": {
+      "main": [
+        [
+          {
+            "node": "Write Message B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Message B": {
+      "main": [
+        [
+          {
+            "node": "Create Leads Tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Leads Tab": {
+      "main": [
+        [
+          {
+            "node": "Write Leads Headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Leads Headers": {
+      "main": [
+        [
+          {
+            "node": "Merge & Summarize Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cbd9cb13-47cf-4140-bbd7-a86b6774fc82",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b1c3f4d60944a79c7cff4ce5b4f4c198cffb4641d2e3e224df63564d0cdda078"
+  },
+  "id": "mHBp1PhU5UyoNL9v",
+  "tags": []
+}
