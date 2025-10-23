@@ -4,6 +4,8 @@
 
 This repository contains n8n workflow automation for nonprofit fundraising using AI-driven strategy discovery, A/B testing, and multi-channel outreach. Built for the **LongBio Nonprofit Fundraising Agent** challenge at HackAging.ai 2025.
 
+![Avenue Discovery & AB Message Generation](https://github.com/asverlov/longbio-agent/blob/main/longbio.jpg)
+
 ## System Architecture
 
 The system consists of 3 core workflows that work together to automate fundraising campaign generation, lead sourcing, and A/B tested outreach.
