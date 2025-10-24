@@ -1,5 +1,7 @@
 # AI-Powered Nonprofit Fundraising Automation
 
+Quick demo and how we got here: [https://youtu.be/Gt6_sMTtrDw](https://youtu.be/Gt6_sMTtrDw)
+
 ## Overview
 
 This repository contains n8n workflow automation for nonprofit fundraising using AI-driven strategy discovery, A/B testing, and multi-channel outreach. Built for the **LongBio Nonprofit Fundraising Agent** challenge at HackAging.ai 2025.
