@@ -1,0 +1,977 @@
+{
+  "name": "longbio-agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "79175fc6-91e5-492d-b849-be1794057085",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        256,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Brief",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/154ZXN4BeVZ4v8S3a5oSHW5IrYofrJuyybXLMAllw7Zc/edit#gid=0"
+        },
+        "combineFilters": "AND",
+        "options": {
+          "outputFormatting": {
+            "values": {
+              "general": "UNFORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          }
+        }
+      },
+      "id": "eaab363b-25e1-4aff-b2ea-c3adef935607",
+      "name": "Read Brief Tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        448,
+        160
+      ],
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Split a single item containing an array of objects into multiple n8n items.\n\nconst input = $input.first().json;\n\n// Grab the array - adjust the key if it's nested differently\nconst list = input.output;\n\n// Validate the content\nif (!Array.isArray(list)) {\n  throw new Error('Expected \"output\" to be an array of objects.');\n}\n\n// Return each object in its own n8n item\nreturn list.map(obj => ({ json: obj }));"
+      },
+      "id": "f999ce17-2f4f-4340-a2aa-18292c18a7e0",
+      "name": "Parse & Validate AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "title": "={{ $json.slug }}",
+        "options": {}
+      },
+      "id": "a6f42407-46fc-444e-9f55-1bbbcfa320f0",
+      "name": "Create Avenue Tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1056,
+        160
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Write Avenue Meta').item.json.slug }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "audience",
+              "displayName": "audience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "valueProp",
+              "displayName": "valueProp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "searchHints",
+              "displayName": "searchHints",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "angleA",
+              "displayName": "angleA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "msgA",
+              "displayName": "msgA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "angleB",
+              "displayName": "angleB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "msgB",
+              "displayName": "msgB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "06c4e033-d9a3-4d1c-8c65-6810061bc8c7",
+      "name": "Write Message A",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1008,
+        352
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "title": "={{ $('Write Avenue Meta').item.json.slug }}-leads",
+        "options": {}
+      },
+      "id": "14f614bb-5ace-498e-b7b0-bc2a3b5c8362",
+      "name": "Create Leads Tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        768,
+        624
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Write Avenue Meta').item.json.slug }}-leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "cd788368-163b-4208-87e4-7b4a0d87b052",
+      "name": "Write Leads Headers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1264,
+        624
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\nconst avenues = allItems.map(item => ({\n  slug: item.json.slug,\n  audience: item.json.audience,\n  channel: item.json.channel\n}));\n\n// Change this line - use .first() instead of .item\nconst spreadsheetId = $('Manual Trigger').first().json.spreadsheetId;\n\nreturn [{\n  json: {\n    success: true,\n    avenuesCreated: avenues.length,\n    avenues: avenues,\n    spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${spreadsheetId}`,\n    nextSteps: [\n      \"1. Review messages in each avenue tab\",\n      \"2. Run WF-2 to generate leads\",\n      \"3. Run WF-3 to send campaigns\"\n    ]\n  }\n}];\n"
+      },
+      "id": "cbc4171a-b30c-4d78-b8ef-cf46fdb9e74b",
+      "name": "Merge & Summarize Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Use the system instructions. Below is the instance data. Return ONLY the raw JSON array (2–4 objects) with keys \"slug\",\"audience\",\"channel\",\"valueProp\",\"searchHints\",\"angleA\",\"angleB\"—no prose.\n\n{\nNon-Profit Name: {{ $json[\"Non-profit\"] }} \nMission: {{ $json.Mission }} \nCurrent Project: {{ $json[\"Project:\"] }} \nLocation: {{ $json.Location }}\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=CONTEXT\nYou are assisting a longevity / anti-aging nonprofit that requires non-standard fundraising strategies. Your output will feed spreadsheets for downstream AI agents who will (a) research and collect leads and (b) generate A/B outreach messages. The organization needs a mix of SPEED/EASE, HIGH ROI, and BREADTH/CREATIVITY. INPUTS WILL BE PROVIDED IN THE USER MESSAGE AS A JSON OBJECT WITH KEYS: \"Non-profit\", \"Mission\", \"Project:\", \"Location\", and optional \"knownSupporters\", \"pastCampaigns\", \"constraints\", \"brandVoice\". DO NOT ECHO INPUTS. CHANNELS ARE JUST DELIVERY RAILS; CREATIVE TACTICS MUST STILL BE EXPRESSED VIA AN “ACTIVATION” PHRASE EMBEDDED IN THE OUTPUT (SEE RULES BELOW).\n\nROLE\nAct as a senior nonprofit fundraising strategist with 20+ years in biomedical philanthropy, longevity/biotech ecosystems, and mission-driven partnerships. You understand DAFs, HNW/family offices, biotech/healthtech CSR, academic philanthropy, conferences, online communities, and compliance-sensitive messaging. AFTER DRAFTING, RUN A SILENT CLEAR SELF-CHECK: CONCISE · LOGICAL · EXPLICIT · ADAPTIVE · REFLECTIVE, THEN INCORPORATE FIXES.\n\nACTION\nLET’S THINK STEP-BY-STEP:\n\nParse the user JSON; internalize the nonprofit, mission, project, and location.\n\nBrainstorm candidate donor segments and creative activations relevant to longevity (e.g., donor salon, prize challenge, corporate wellness pilot, matched-gift coalition, campus ambassador mini-grants, investor roundtable, podcast mini-series, hackathon/data challenge, naming rights, cause marketing, legacy/DAF campaigns, conference-side events).\n\nScore options on SPEED/EASE, ROI, NOVELTY, and MISSION ALIGNMENT; pick 2–4 distinct audience × channel combinations that together balance these dimensions.\n\nFor each avenue, produce fields exactly as specified in FORMAT and enforce these rules:\n\nslug: kebab-case “audience-channel[-tactic]”; include a short tactic suffix when channel is \"other\" or \"hybrid\" (e.g., \"family-offices-other-salon\").\n\naudience: a precise donor segment (decision-makers with giving authority).\n\nchannel: one of [\"email\",\"LinkedIn\",\"warm-intro\",\"webinar\",\"event-follow-up\",\"community-DM\",\"grant-portal\",\"partnership-outreach\",\"other\",\"hybrid\"].\n\nvalueProp: begin with an activation tag in brackets (e.g., \"[donor salon] Evidence-based aging biomarker pilot with clear milestones.\") One concise sentence; NO MEDICAL OR THERAPEUTIC CLAIMS.\n\nsearchHints: 1–2 compact Boolean/directory-style hints (≤ 200 chars total) researchers can paste into tools to find leads; prefer DAF directories (Fidelity/Schwab/Vanguard), family office lists, Crunchbase/AngelList (longevity/age-tech), OpenAlex/NIH RePORTER, conference sponsor/attendee lists, LinkedIn role patterns, foundation databases; include {{ $json.Location }} terms if provided; include tactic keywords when using \"other\" or \"hybrid\". ASCII only.\n\nangleA and angleB: two contrasting outreach angles (≤ 18 words each), e.g., impact-first vs credibility-first; local-benefit vs global-leadership; scientific-milestone vs stakeholder-story.\n\nEnsure distinctness: avoid repeating the same audience or channel unless materially different; vary activations across avenues.\n\nLocalize when \"Location\" is present; otherwise default to global reach.\n\nRespect any \"constraints\" and \"brandVoice\" if provided.\n\nDO NOT OUTPUT QUESTIONS OR PROSE; IF INPUTS ARE MISSING, INFER CONSERVATIVE, EVIDENCE-ALIGNED ASSUMPTIONS AND PROCEED WITHOUT BREAKING FORMAT.\n\nFORMAT\nReturn ONLY a raw JSON array (no prose, no code fences). Exactly 2–4 objects. Keys must appear exactly as: \"slug\",\"audience\",\"channel\",\"valueProp\",\"searchHints\",\"angleA\",\"angleB\". No extra fields; no line breaks inside values; no trailing commas. Field constraints:\n\n\"slug\": kebab-case, ≤ 40 chars, unique; when channel is \"other\" or \"hybrid\" append a short tactic suffix.\n\n\"channel\": must be one of the allowed values listed above.\n\n\"valueProp\": 1 sentence starting with a bracketed activation tag.\n\n\"searchHints\": ≤ 200 chars total.\nExample shape (for structure only, not to be emitted): [{\"slug\":\"audience-channel[-tactic]\",\"audience\":\"donor segment\",\"channel\":\"email|...|other|hybrid\",\"valueProp\":\"[tactic] why they care\",\"searchHints\":\"how to find leads\",\"angleA\":\"first approach\",\"angleB\":\"second approach\"}]\n\nTARGET AUDIENCE\nDownstream AI researchers compiling lead lists, AI copywriters generating A/B outreach, and the nonprofit’s leadership reviewing avenues for longevity/anti-aging fundraising."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        160
+      ],
+      "id": "e9556538-2bda-42b5-820a-e90e162fc179",
+      "name": "AI Avenue Generation"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        0
+      ],
+      "id": "c2c6f15c-6e85-40da-bdf7-c8a61b7be384",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "JEfSEqdw3AmHNT4o",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "1",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        0
+      ],
+      "id": "88def074-2fa8-4b09-a3db-f31441de201e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"slug\": \"string\",\n    \"audience\": \"string\",\n    \"channel\": \"string\",\n    \"valueProp\": \"string\",\n    \"searchHints\": \"string\",\n    \"angleA\": \"string\",\n    \"angleB\": \"string\"\n  }\n]",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        0
+      ],
+      "id": "e6af4242-f2ad-40ae-8011-74b4e842bd1f",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all avenue items from the Parse & Validate node\nconst avenues = $('Parse & Validate AI Response').all();\n\n// Optionally transform or just forward them\nreturn avenues;\n\nreturn $('Parse & Validate AI Response').all().map(i => ({\n  json: {\n    audience: i.json.audience,\n    channel: i.json.channel,\n    valueProp: i.json.valueProp,\n    searchHints: i.json.searchHints,\n    angleA: i.json.angleA,\n    angleB: i.json.angleB,\n  }\n}));\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        160
+      ],
+      "id": "064cd85c-74f9-4536-a5f8-7ed943cfa925",
+      "name": "Avenue Meta"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.slug }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "audience",
+              "displayName": "audience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "valueProp",
+              "displayName": "valueProp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "searchHints",
+              "displayName": "searchHints",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "angleA",
+              "displayName": "angleA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "angleB",
+              "displayName": "angleB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a907da41-29fc-4709-b089-dd30dcd20b4c",
+      "name": "Write Avenue Meta",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        336,
+        352
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1456,
+        160
+      ],
+      "id": "20d1ed47-30a2-4940-9024-5d4d2a1048b3",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Use the system instructions. Below is the instance data. \n{\nNon-Profit Name:  {{ $('Read Brief Tab').item.json[\"Non-profit\"] }}\nMission:  {{ $('Read Brief Tab').item.json.Mission }}\nCurrent Project: {{ $('Read Brief Tab').item.json[\"Project:\"] }}\nLocation: {{ $('Read Brief Tab').item.json.Location }}\nAudience: {{ $json.audience }}\nChannel: {{ $json.channel }}\nvalueProp: {{ $json.valueProp }}\nangleA: {{ $json.angleA }}\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=CONTEXT\nCompose a single high-conversion outreach message body (or short script for video/voice) for a longevity/anti-aging nonprofit using one selected fundraising avenue. Inputs arrive as JSON with: \"Non-profit\", \"Mission\", \"Project:\", \"Location\", and \"avenue\" { \"audience\", \"channel\", \"valueProp\", \"angleA\" }. Output only the message body—no subject, no title, no JSON.\n\nROLE\nAct as a senior nonprofit copy strategist with 20+ years in biomedical philanthropy and longevity communications. AFTER DRAFTING, RUN A SILENT CLEAR SELF-CHECK: CONCISE · LOGICAL · EXPLICIT · ADAPTIVE · REFLECTIVE, THEN INCORPORATE FIXES.\n\nACTION\nLET’S THINK STEP-BY-STEP:\n\nInternalize the nonprofit, Project:, Location, audience, channel, valueProp, and angleA.\n\nPick one low-friction CTA matched to the channel (e.g., “reply YES for a 15-min intro,” “accept to compare notes,” “review a 1-pager,” “confirm sponsor interest,” “schedule via [calendar link]”).\n\nDraft to convert, following these rules:\n\nNo deck-style labels (never write “Credibility:” or “Impact:”).\n\nOpen with audience relevance; state the Project: outcome in plain language.\n\nMake angleA explicit as the “why now” for this audience.\n\nInclude one specific proof only if provided or inferable from inputs (e.g., named partner, milestone). If none, omit—do not fabricate.\n\nUse Location as “in City, ST” (no ZIP codes).\n\nIf an amount cap and/or deadline is present in inputs, include it; otherwise omit numeric specifics.\n\nExactly one CTA at the end.\n\nStyle: human, direct, skimmable. Short paragraphs; optional ≤3 bullets. ASCII only. Allowed placeholders: [first name], [calendar link], [one-pager link], [link], [QR link].\n\nIf channel indicates video/voice (“video”, “short-video”, “reel”, “story”, “voice note”): write a 20–45s script with beats and minimal cues:\n[HOOK] → [PROBLEM/OPPORTUNITY] → [PROJECT OUTCOME] → [ANGLE/WHY NOW] → [PROOF if provided] → [CTA].\nInclude simple bracketed cues like [ON-SCREEN TEXT:], [CTA CARD:], [0:00–0:03]. Keep spoken words ~90–130.\n\nFORMAT\nReturn ONLY the message body as plain text (no subject, no title, no JSON, no code fences)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        352
+      ],
+      "id": "0481d763-dc1c-48e4-9d9e-31e7574cb1c4",
+      "name": "Message A"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Use the system instructions. Below is the instance data. \n{\nNon-Profit Name:  {{ $('Read Brief Tab').item.json[\"Non-profit\"] }}\nMission:  {{ $('Read Brief Tab').item.json.Mission }}\nCurrent Project: {{ $('Read Brief Tab').item.json[\"Project:\"] }}\nLocation: {{ $('Read Brief Tab').item.json.Location }}\nAudience: {{ $('Write Avenue Meta').item.json.audience }}\nChannel: {{ $('Write Avenue Meta').item.json.channel }}\nvalueProp: {{ $('Write Avenue Meta').item.json.valueProp }}\nangleB: {{ $('Write Avenue Meta').item.json.angleB }}\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=CONTEXT\nCompose a single high-conversion outreach message body (or short script for video/voice) for a longevity/anti-aging nonprofit using one selected fundraising avenue. Inputs arrive as JSON with: \"Non-profit\", \"Mission\", \"Project:\", \"Location\", and \"avenue\" { \"audience\", \"channel\", \"valueProp\", \"angleB\" }. Output only the message body—no subject, no title, no JSON.\n\nROLE\nAct as a senior nonprofit copy strategist with 20+ years in biomedical philanthropy and longevity communications. AFTER DRAFTING, RUN A SILENT CLEAR SELF-CHECK: CONCISE · LOGICAL · EXPLICIT · ADAPTIVE · REFLECTIVE, THEN INCORPORATE FIXES.\n\nACTION\nLET’S THINK STEP-BY-STEP:\n\nInternalize the nonprofit, Project:, Location, audience, channel, valueProp, and angleB.\n\nPick one low-friction CTA matched to the channel (e.g., “reply YES for a 15-min intro,” “accept to compare notes,” “review a 1-pager,” “confirm sponsor interest,” “schedule via [calendar link]”).\n\nDraft to convert, following these rules:\n\nNo deck-style labels (never write “Credibility:” or “Impact:”).\n\nOpen with audience relevance; state the Project: outcome in plain language.\n\nMake angleB explicit as the “why now” for this audience.\n\nInclude one specific proof only if provided or inferable from inputs (e.g., named partner, milestone). If none, omit—do not fabricate.\n\nUse Location as “in City, ST” (no ZIP codes).\n\nIf an amount cap and/or deadline is present in inputs, include it; otherwise omit numeric specifics.\n\nExactly one CTA at the end.\n\nStyle: human, direct, skimmable. Short paragraphs; optional ≤3 bullets. ASCII only. Allowed placeholders: [first name], [calendar link], [one-pager link], [link], [QR link].\n\nIf channel indicates video/voice (“video”, “short-video”, “reel”, “story”, “voice note”): write a 20–45s script with beats and minimal cues:\n[HOOK] → [PROBLEM/OPPORTUNITY] → [PROJECT OUTCOME] → [ANGLE/WHY NOW] → [PROOF if provided] → [CTA].\nInclude simple bracketed cues like [ON-SCREEN TEXT:], [CTA CARD:], [0:00–0:03]. Keep spoken words ~90–130.\n\nFORMAT\nReturn ONLY the message body as plain text (no subject, no title, no JSON, no code fences)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        352
+      ],
+      "id": "fd9a812b-694a-4d58-ba63-cf517b1b9ed8",
+      "name": "Message B"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    msgB: $input.first().json.output\n  }\n}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        352
+      ],
+      "id": "81f16d34-ef2d-4c03-9568-088b66a33d7a",
+      "name": "MsgB"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    msgA: $input.first().json.output\n  }\n}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        352
+      ],
+      "id": "29a989b9-a6b6-4d63-8798-d86664a458b3",
+      "name": "msgA"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Manual Trigger').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Write Avenue Meta').item.json.slug }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "audience",
+              "displayName": "audience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "valueProp",
+              "displayName": "valueProp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "searchHints",
+              "displayName": "searchHints",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "angleA",
+              "displayName": "angleA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "msgA",
+              "displayName": "msgA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "angleB",
+              "displayName": "angleB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "msgB",
+              "displayName": "msgB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a57eaa70-7335-47c3-b1cf-aaaf28ebd67e",
+      "name": "Write Message B",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1728,
+        352
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "oZvScdgvWYcin90e",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    email: \"\",\n    name: \"\",\n    org: \"\",\n    source: \"\",\n    status: \"\",\n    last_run_tag: \"\",\n    last_variant: \"\",\n    last_sent_at: \"\",\n    last_message_id: \"\",\n    last_result: \"\",\n    notes: \"\"\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        624
+      ],
+      "id": "19a4d8d4-d724-4b37-84ee-34950b02997b",
+      "name": "Leads Headers"
+    }
+  ],
+  "pinData": {
+    "Manual Trigger": [
+      {
+        "json": {
+          "spreadsheetId": "154ZXN4BeVZ4v8S3a5oSHW5IrYofrJuyybXLMAllw7Zc"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Brief Tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Brief Tab": {
+      "main": [
+        [
+          {
+            "node": "AI Avenue Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate AI Response": {
+      "main": [
+        [
+          {
+            "node": "Create Avenue Tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Avenue Tab": {
+      "main": [
+        [
+          {
+            "node": "Avenue Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Message A": {
+      "main": [
+        [
+          {
+            "node": "Message B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Leads Tab": {
+      "main": [
+        [
+          {
+            "node": "Leads Headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Leads Headers": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Avenue Generation": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Avenue Generation",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Message A",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Message B",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Avenue Generation",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Message A",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Message B",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Avenue Generation",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Avenue Meta": {
+      "main": [
+        [
+          {
+            "node": "Message A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avenue Meta": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Merge & Summarize Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Write Avenue Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge & Summarize Output": {
+      "main": [
+        []
+      ]
+    },
+    "Message A": {
+      "main": [
+        [
+          {
+            "node": "msgA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message B": {
+      "main": [
+        [
+          {
+            "node": "MsgB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "msgA": {
+      "main": [
+        [
+          {
+            "node": "Write Message A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MsgB": {
+      "main": [
+        [
+          {
+            "node": "Write Message B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Message B": {
+      "main": [
+        [
+          {
+            "node": "Create Leads Tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leads Headers": {
+      "main": [
+        [
+          {
+            "node": "Write Leads Headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a96389fb-490d-40b8-b244-2a67d948453a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b1c3f4d60944a79c7cff4ce5b4f4c198cffb4641d2e3e224df63564d0cdda078"
+  },
+  "id": "mHBp1PhU5UyoNL9v",
+  "tags": []
+}
